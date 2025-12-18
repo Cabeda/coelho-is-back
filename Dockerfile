@@ -52,6 +52,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/run.sh ./run.sh
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Ensure data directory exists and has correct permissions for SQLite
 RUN mkdir -p /app/data && chown 1001:1001 /app/data
