@@ -167,8 +167,8 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       ))}
 
       {/* Main UI */}
-      <div className="z-20 flex flex-col items-center gap-4 md:gap-8 p-4 md:p-8 arcade-border bg-black/80 backdrop-blur-sm w-full max-w-md">
-        <h1 className="text-2xl md:text-4xl font-bold arcade-text text-center leading-tight">
+      <div className="z-20 flex flex-col items-center gap-10 md:gap-16 p-8 md:p-12 arcade-border bg-black/80 backdrop-blur-sm w-full max-w-md">
+        <h1 className="text-2xl md:text-4xl font-bold arcade-text text-center leading-tight mb-2 md:mb-4">
           COELHO IS BACK!
         </h1>
 
@@ -176,7 +176,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
           <div className="text-4xl sm:text-5xl md:text-6xl font-mono text-arcade-yellow arcade-text tabular-nums tracking-tighter">
             {formatTime(elapsed)}
           </div>
-          <div className="text-[10px] md:text-xs arcade-text mt-2 h-4">
+          <div className="text-[12px] md:text-sm arcade-text mt-6 md:mt-10 mb-4 md:mb-6 h-4">
             {latestTime?.type === 'ARRIVAL' ? (
               <span className="text-arcade-cyan animate-pulse">• IN PORTO •</span>
             ) : latestTime?.type === 'DEPARTURE' ? (
@@ -187,7 +187,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 md:gap-4 w-full">
+        <div className="flex flex-col gap-4 md:gap-6 w-full">
           <button
             onClick={handleReset}
             className="arcade-button w-full"

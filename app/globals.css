@@ -51,7 +51,7 @@ body {
   text-transform: uppercase;
   cursor: pointer;
   font-size: clamp(0.875rem, 4vw, 1.25rem);
-  padding: clamp(0.5rem, 2vw, 1rem) clamp(1rem, 4vw, 2rem);
+  padding: clamp(0.75rem, 3vw, 1.25rem) clamp(1.5rem, 5vw, 2.5rem);
 }
 
 .arcade-button:hover {
@@ -73,7 +73,7 @@ body {
   text-transform: uppercase;
   cursor: pointer;
   font-size: clamp(0.875rem, 4vw, 1.25rem);
-  padding: clamp(0.5rem, 2vw, 1rem) clamp(1rem, 4vw, 2rem);
+  padding: clamp(0.75rem, 3vw, 1.25rem) clamp(1.5rem, 5vw, 2.5rem);
 }
 
 .arcade-button-pink:hover {
