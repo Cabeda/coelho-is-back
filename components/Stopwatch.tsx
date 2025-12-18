@@ -50,15 +50,20 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
         prevRabbits.map((rabbit) => {
           let { x, y, vx, vy } = rabbit;
           const size = 40;
+          const width = window.innerWidth;
+          const height = window.innerHeight;
 
           x += vx;
           y += vy;
 
-          if (x <= 0 || x >= window.innerWidth - size) vx *= -1;
-          if (y <= 0 || y >= window.innerHeight - size) vy *= -1;
-
-          x = Math.max(0, Math.min(x, window.innerWidth - size));
-          y = Math.max(0, Math.min(y, window.innerHeight - size));
+          if (x <= 0 || x >= width - size) {
+            vx *= -1;
+            x = Math.max(0, Math.min(x, width - size));
+          }
+          if (y <= 0 || y >= height - size) {
+            vy *= -1;
+            y = Math.max(0, Math.min(y, height - size));
+          }
 
           return { ...rabbit, x, y, vx, vy };
         })
@@ -142,7 +147,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
 
   return (
     <main 
-      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-black cursor-crosshair"
+      className="relative w-full h-screen h-[100dvh] flex flex-col items-center justify-center overflow-hidden bg-black cursor-crosshair p-4"
       onClick={handleBackgroundClick}
     >
       <div className="pixel-grid absolute inset-0 z-0" />
@@ -151,7 +156,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       {rabbits.map((rabbit) => (
         <div
           key={rabbit.id}
-          className="absolute text-4xl pointer-events-none z-10"
+          className="absolute text-2xl md:text-4xl pointer-events-none z-10"
           style={{
             transform: `translate3d(${rabbit.x}px, ${rabbit.y}px, 0)`,
             willChange: 'transform',
@@ -162,16 +167,16 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       ))}
 
       {/* Main UI */}
-      <div className="z-20 flex flex-col items-center gap-8 p-8 arcade-border bg-black/80 backdrop-blur-sm max-w-md w-full">
-        <h1 className="text-4xl font-bold arcade-text text-center">
+      <div className="z-20 flex flex-col items-center gap-4 md:gap-8 p-4 md:p-8 arcade-border bg-black/80 backdrop-blur-sm w-full max-w-md">
+        <h1 className="text-2xl md:text-4xl font-bold arcade-text text-center leading-tight">
           COELHO IS BACK!
         </h1>
 
-        <div className="flex flex-col items-center">
-          <div className="text-6xl font-mono text-arcade-yellow arcade-text tabular-nums">
+        <div className="flex flex-col items-center w-full">
+          <div className="text-4xl sm:text-5xl md:text-6xl font-mono text-arcade-yellow arcade-text tabular-nums tracking-tighter">
             {formatTime(elapsed)}
           </div>
-          <div className="text-xs arcade-text mt-2 h-4">
+          <div className="text-[10px] md:text-xs arcade-text mt-2 h-4">
             {latestTime?.type === 'ARRIVAL' ? (
               <span className="text-arcade-cyan animate-pulse">• IN PORTO •</span>
             ) : latestTime?.type === 'DEPARTURE' ? (
@@ -182,10 +187,10 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-3 md:gap-4 w-full">
           <button
             onClick={handleReset}
-            className="arcade-button px-8 py-4 text-xl font-bold hover:scale-105 active:scale-95 w-full"
+            className="arcade-button w-full"
           >
             {latestTime ? 'ARRIVED IN PORTO! 🐇' : 'START JOURNEY! 🚀'}
           </button>
@@ -193,7 +198,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
           {latestTime?.type === 'ARRIVAL' && (
             <button
               onClick={handleLeave}
-              className="arcade-button-pink px-8 py-4 text-xl font-bold hover:scale-105 active:scale-95 w-full"
+              className="arcade-button-pink w-full"
             >
               LEFT PORTO! 👋
             </button>
@@ -201,21 +206,21 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
         </div>
 
         {/* Scoreboard */}
-        <div className="w-full mt-4">
-          <h2 className="text-xl font-bold arcade-text text-arcade-cyan mb-4 border-b-2 border-arcade-cyan pb-2 text-center">
+        <div className="w-full mt-2 md:mt-4">
+          <h2 className="text-lg md:text-xl font-bold arcade-text text-arcade-cyan mb-3 md:mb-4 border-b-2 border-arcade-cyan pb-2 text-center">
             RECENT TIMES
           </h2>
-          <div className="space-y-2 font-mono text-sm max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-2 md:space-y-3 font-mono text-xs md:text-sm max-h-[30vh] md:max-h-48 overflow-y-auto pr-2 custom-scrollbar">
             {history.length === 0 ? (
               <p className="text-gray-500 italic text-center">No records yet...</p>
             ) : (
               history.map((entry, i) => (
-                <div key={entry.id} className="flex justify-between items-center px-2 border-l-2 border-arcade-blue/30 pl-4">
+                <div key={entry.id} className="flex justify-between items-center px-2 border-l-2 border-arcade-blue/30 pl-3 md:pl-4">
                   <div className="flex flex-col">
-                    <span className={`text-[10px] font-bold ${entry.type === 'ARRIVAL' ? 'text-arcade-cyan' : 'text-arcade-pink'}`}>
+                    <span className={`text-[9px] md:text-[10px] font-bold ${entry.type === 'ARRIVAL' ? 'text-arcade-cyan' : 'text-arcade-pink'}`}>
                       {entry.type === 'ARRIVAL' ? 'ARRIVED' : 'LEFT'}
                     </span>
-                    <span className="text-white/50 text-[9px]">
+                    <span className="text-white/50 text-[8px] md:text-[9px]">
                       {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -229,7 +234,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
         </div>
       </div>
 
-      <div className="absolute bottom-4 text-xs text-arcade-blue arcade-text opacity-50">
+      <div className="absolute bottom-2 md:bottom-4 text-[8px] md:text-xs text-arcade-blue arcade-text opacity-50">
         INSERT COIN TO CONTINUE
       </div>
     </main>
