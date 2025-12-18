@@ -134,15 +134,24 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
           COELHO IS BACK!
         </h1>
 
-        <div className="text-6xl font-mono text-arcade-yellow arcade-text tabular-nums">
-          {formatTime(elapsed)}
+        <div className="flex flex-col items-center">
+          <div className="text-6xl font-mono text-arcade-yellow arcade-text tabular-nums">
+            {formatTime(elapsed)}
+          </div>
+          <div className="text-xs arcade-text mt-2 h-4">
+            {latestTime ? (
+              <span className="text-arcade-cyan animate-pulse">• PLAYING •</span>
+            ) : (
+              <span className="text-arcade-pink">• READY •</span>
+            )}
+          </div>
         </div>
 
         <button
           onClick={handleReset}
           className="arcade-button px-8 py-4 text-2xl font-bold hover:scale-105 active:scale-95"
         >
-          ARRIVED IN PORTO! 🐇
+          {latestTime ? 'ARRIVED IN PORTO! 🐇' : 'START TIMER! 🚀'}
         </button>
 
         {/* Scoreboard */}

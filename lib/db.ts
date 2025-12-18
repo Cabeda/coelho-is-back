@@ -1,10 +1,24 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+
+// Ensure data directory exists
+const dataDir = path.join(process.cwd(), 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'stopwatch.db');
+const adapter = new PrismaBetterSqlite3({ url: dbPath });
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
+    adapter,
     log: ['query'],
   });
 
