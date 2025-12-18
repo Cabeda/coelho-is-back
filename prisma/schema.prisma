@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -12,6 +13,7 @@ datasource db {
 model ArrivalTime {
   id            Int      @id @default(autoincrement())
   timestamp     BigInt
+  type          String   @default("ARRIVAL")
   formattedTime String   @map("formatted_time")
   createdAt     DateTime @default(now()) @map("created_at")
 

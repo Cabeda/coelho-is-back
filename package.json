@@ -22,10 +22,19 @@
     "@types/node": "^20.19.27",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.1.0",
     "prisma": "^7.2.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "prisma",
+      "@prisma/engines",
+      "@prisma/client"
+    ]
   }
 }

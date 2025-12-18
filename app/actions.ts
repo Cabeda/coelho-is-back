@@ -3,14 +3,16 @@
 import { saveArrivalTime, getAllArrivalTimes, getLatestArrivalTime } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
-export async function recordArrivalTime(timestamp: number, formattedTime: string) {
+export async function recordArrivalTime(timestamp: number, formattedTime: string, type: 'ARRIVAL' | 'DEPARTURE' = 'ARRIVAL') {
   try {
-    const result = await saveArrivalTime(timestamp, formattedTime);
+    console.log(`Recording ${type}:`, { timestamp, formattedTime });
+    const result = await saveArrivalTime(timestamp, formattedTime, type);
+    console.log(`Successfully saved ${type}:`, result);
     revalidatePath('/');
     return { success: true, data: result };
   } catch (error) {
-    console.error('Error recording arrival time:', error);
-    return { success: false, error: 'Failed to record arrival time' };
+    console.error(`Error recording ${type}:`, error);
+    return { success: false, error: error instanceof Error ? error.message : `Failed to record ${type}` };
   }
 }
 

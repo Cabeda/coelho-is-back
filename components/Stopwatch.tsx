@@ -27,12 +27,18 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
 
   // Timer logic
   useEffect(() => {
+    if (!latestTime) {
+      setElapsed(0);
+      return;
+    }
+
+    if (latestTime.type === 'DEPARTURE') {
+      setElapsed(parseTime(latestTime.formatted_time));
+      return;
+    }
+
     const interval = setInterval(() => {
-      if (latestTime) {
-        setElapsed(Date.now() - latestTime.timestamp);
-      } else {
-        setElapsed(0);
-      }
+      setElapsed(Date.now() - latestTime.timestamp);
     }, 10);
     return () => clearInterval(interval);
   }, [latestTime]);
@@ -95,15 +101,42 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       .padStart(2, '0')}`;
   };
 
+  const parseTime = (timeStr: string) => {
+    try {
+      const [hms, cs] = timeStr.split('.');
+      const [h, m, s] = hms.split(':').map(Number);
+      return (h * 3600 + m * 60 + s) * 1000 + (Number(cs) || 0) * 10;
+    } catch (e) {
+      return 0;
+    }
+  };
+
   const handleReset = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const now = Date.now();
-    const formatted = formatTime(0);
-    const result = await recordArrivalTime(now, formatted);
+    const formatted = formatTime(elapsed);
+    const result = await recordArrivalTime(now, formatted, 'ARRIVAL');
     
     if (result.success && result.data) {
       setLatestTime(result.data);
       setHistory(prev => [result.data!, ...prev].slice(0, 10));
+      setElapsed(0);
+    } else {
+      alert(`Error: ${result.error || 'Unknown error'}`);
+    }
+  };
+
+  const handleLeave = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const now = Date.now();
+    const formatted = formatTime(elapsed);
+    const result = await recordArrivalTime(now, formatted, 'DEPARTURE');
+    
+    if (result.success && result.data) {
+      setLatestTime(result.data);
+      setHistory(prev => [result.data!, ...prev].slice(0, 10));
+    } else {
+      alert(`Error: ${result.error || 'Unknown error'}`);
     }
   };
 
@@ -139,34 +172,56 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
             {formatTime(elapsed)}
           </div>
           <div className="text-xs arcade-text mt-2 h-4">
-            {latestTime ? (
-              <span className="text-arcade-cyan animate-pulse">• PLAYING •</span>
+            {latestTime?.type === 'ARRIVAL' ? (
+              <span className="text-arcade-cyan animate-pulse">• IN PORTO •</span>
+            ) : latestTime?.type === 'DEPARTURE' ? (
+              <span className="text-arcade-pink">• AWAY •</span>
             ) : (
-              <span className="text-arcade-pink">• READY •</span>
+              <span className="text-arcade-blue">• READY •</span>
             )}
           </div>
         </div>
 
-        <button
-          onClick={handleReset}
-          className="arcade-button px-8 py-4 text-2xl font-bold hover:scale-105 active:scale-95"
-        >
-          {latestTime ? 'ARRIVED IN PORTO! 🐇' : 'START TIMER! 🚀'}
-        </button>
+        <div className="flex flex-col gap-4 w-full">
+          <button
+            onClick={handleReset}
+            className="arcade-button px-8 py-4 text-xl font-bold hover:scale-105 active:scale-95 w-full"
+          >
+            {latestTime ? 'ARRIVED IN PORTO! 🐇' : 'START JOURNEY! 🚀'}
+          </button>
+
+          {latestTime?.type === 'ARRIVAL' && (
+            <button
+              onClick={handleLeave}
+              className="arcade-button-pink px-8 py-4 text-xl font-bold hover:scale-105 active:scale-95 w-full"
+            >
+              LEFT PORTO! 👋
+            </button>
+          )}
+        </div>
 
         {/* Scoreboard */}
         <div className="w-full mt-4">
           <h2 className="text-xl font-bold arcade-text text-arcade-cyan mb-4 border-b-2 border-arcade-cyan pb-2 text-center">
-            RECENT ARRIVALS
+            RECENT TIMES
           </h2>
-          <div className="space-y-2 font-mono text-sm">
+          <div className="space-y-2 font-mono text-sm max-h-48 overflow-y-auto pr-2 custom-scrollbar">
             {history.length === 0 ? (
               <p className="text-gray-500 italic text-center">No records yet...</p>
             ) : (
               history.map((entry, i) => (
-                <div key={entry.id} className="flex justify-between items-center px-2">
-                  <span className="text-arcade-pink">{i + 1}. {new Date(entry.timestamp).toLocaleDateString()}</span>
-                  <span className="text-arcade-cyan">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                <div key={entry.id} className="flex justify-between items-center px-2 border-l-2 border-arcade-blue/30 pl-4">
+                  <div className="flex flex-col">
+                    <span className={`text-[10px] font-bold ${entry.type === 'ARRIVAL' ? 'text-arcade-cyan' : 'text-arcade-pink'}`}>
+                      {entry.type === 'ARRIVAL' ? 'ARRIVED' : 'LEFT'}
+                    </span>
+                    <span className="text-white/50 text-[9px]">
+                      {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <span className="text-arcade-yellow font-bold tabular-nums">
+                    {entry.formatted_time}
+                  </span>
                 </div>
               ))
             )}
