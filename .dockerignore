@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+data
+*.db
+*.db-journal
+.env
+.env.local
+README.md
+Dockerfile
+fly.toml
