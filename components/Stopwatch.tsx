@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { recordArrivalTime } from '@/app/actions';
 import { ArrivalTime } from '@/lib/db';
+import Dice3D from './Dice3D';
 
 interface Rabbit {
   id: number;
@@ -11,6 +12,7 @@ interface Rabbit {
   vx: number;
   vy: number;
   emoji: string;
+  targetNumber?: number;
 }
 
 interface FloatingMessage {
@@ -217,28 +219,33 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
     let emoji = isDMMode ? ['🐉', '👹', '💀', '🧙‍♂️', '⚔️', '🛡️'][Math.floor(Math.random() * 6)] : '🐇';
     let message = '';
     let messageColor = 'text-arcade-yellow';
+    let targetNumber: number | undefined = undefined;
     
     // Get click coordinates - center the emoji on the click point
     const clickX = e.clientX;
     const clickY = e.clientY;
     
-    if (roll === 20) {
+    // Increased frequency: 1 in 4 chance (roll >= 16)
+    if (roll >= 16) {
       emoji = '🎲';
-      message = "CRITICAL SUCCESS!";
+      targetNumber = Math.floor(Math.random() * 6) + 1;
+      message = roll === 20 ? `CRITICAL SUCCESS! (Rolled ${targetNumber})` : `DICE ROLL! (${targetNumber})`;
       messageColor = "text-arcade-yellow";
       // Add extra rabbits on crit success
-      for (let i = 0; i < 2; i++) {
-        setRabbits(prev => {
-          const newRabbit: Rabbit = {
-            id: Math.random(),
-            x: clickX - 20 + (Math.random() - 0.5) * 60,
-            y: clickY - 20 + (Math.random() - 0.5) * 60,
-            vx: (Math.random() - 0.5) * 12,
-            vy: (Math.random() - 0.5) * 12,
-            emoji: isDMMode ? '⭐' : '✨',
-          };
-          return [...prev, newRabbit];
-        });
+      if (roll === 20) {
+        for (let i = 0; i < 2; i++) {
+          setRabbits(prev => {
+            const newRabbit: Rabbit = {
+              id: Math.random(),
+              x: clickX - 20 + (Math.random() - 0.5) * 60,
+              y: clickY - 20 + (Math.random() - 0.5) * 60,
+              vx: (Math.random() - 0.5) * 12,
+              vy: (Math.random() - 0.5) * 12,
+              emoji: isDMMode ? '⭐' : '✨',
+            };
+            return [...prev, newRabbit];
+          });
+        }
       }
     } else if (roll === 1) {
       emoji = isDMMode ? '💀' : '👻';
@@ -284,9 +291,10 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       id: Math.random(),
       x: clickX - 20,
       y: clickY - 20,
-      vx: (Math.random() - 0.5) * 10,
-      vy: (Math.random() - 0.5) * 10,
+      vx: emoji === '🎲' ? (Math.random() - 0.5) * 4 : (Math.random() - 0.5) * 10,
+      vy: emoji === '🎲' ? (Math.random() - 0.5) * 4 : (Math.random() - 0.5) * 10,
       emoji,
+      targetNumber,
     };
 
     setRabbits((prev) => [...prev, newRabbit]);
@@ -357,7 +365,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       {rabbits.map((rabbit) => (
         <div
           key={rabbit.id}
-          className={`absolute text-2xl md:text-4xl pointer-events-none z-10 ${rabbit.emoji === '🎲' ? 'dice-rolling' : ''}`}
+          className={`absolute pointer-events-none ${rabbit.emoji === '🎲' ? 'z-40' : 'z-10 text-2xl md:text-4xl'}`}
           style={{
             left: 0,
             top: 0,
@@ -365,7 +373,11 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
             willChange: 'transform',
           }}
         >
-          {rabbit.emoji}
+          {rabbit.emoji === '🎲' && rabbit.targetNumber ? (
+            <Dice3D targetNumber={rabbit.targetNumber} />
+          ) : (
+            rabbit.emoji
+          )}
         </div>
       ))}
 
