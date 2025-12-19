@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🐇 Coelho Is Back
 
-## Getting Started
+A retro arcade-style time tracker with interactive 3D dice and bouncing emojis. Track your arrival and departure times in Porto with style!
 
-First, run the development server:
+## ✨ Features
+
+- ⏱️ **Real-time stopwatch** - Track time since arrival in Porto
+- 🎲 **3D animated dice** - Fully animated OpenGL dice with realistic physics (powered by Three.js)
+- 🐇 **Interactive bouncing emojis** - Click anywhere to spawn bouncing rabbits and creatures
+- 🎮 **Retro arcade aesthetic** - 80's game-inspired neon colors and pixel art styling
+- 🗄️ **Persistent history** - SQLite database with Prisma stores your arrival/departure records
+- 🎪 **Hidden easter eggs**:
+  - Type `dnd` to activate Dungeon Master mode
+  - Type `heal` to use a healing potion
+  - Type `curse` to spawn cursed entities
+  - Enter the Konami code (`↑↑↓↓←→←→BA`) for spell shield
+
+## 🚀 Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **3D Graphics**: Three.js + React Three Fiber + React Three Drei
+- **Database**: SQLite with Prisma ORM
+- **Styling**: Tailwind CSS v4
+- **Package Manager**: pnpm
+- **Deployment**: Fly.io
+
+## 🛠️ Getting Started
+
+First, install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the development server:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-## Learn More
+## 🎯 Game Mechanics
 
-To learn more about Next.js, take a look at the following resources:
+- **Click anywhere** to spawn entities with random D&D-style rolls (1-20)
+- **Roll 16+**: Spawns an animated 3D dice (1 in 4 chance)
+- **Roll 20**: Critical success! Spawns extra sparkle effects
+- **Roll 1**: Critical fail! Spawns cursed entities in DM mode
+- **Max 20 entities** on screen for performance
+- **Only 1 dice at a time** to prevent performance issues
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📦 Build & Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Build for production:
 
-## Deploy on Vercel
+```bash
+pnpm build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy to Fly.io:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+fly deploy
+```
+
+## 🗃️ Database
+
+The app uses SQLite with Prisma. Schema includes:
+
+- Arrival/departure timestamps
+- Formatted time strings
+- Type indicators (ARRIVAL/DEPARTURE)
+
+## 📄 License
+
+MIT
