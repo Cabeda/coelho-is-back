@@ -105,3 +105,42 @@ body {
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
 }
+
+.dungeon-grid {
+  background-image: 
+    linear-gradient(to right, #450a0a 2px, transparent 2px),
+    linear-gradient(to bottom, #450a0a 2px, transparent 2px),
+    radial-gradient(circle at 2px 2px, #7f1d1d 1px, transparent 0);
+  background-size: 50px 50px;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -100px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-float-up {
+  animation: float-up 2s ease-out forwards;
+}
+@keyframes dice-roll {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+  }
+  100% {
+    transform: rotateX(720deg) rotateY(720deg) rotateZ(720deg);
+  }
+}
+
+.dice-rolling {
+  animation: dice-roll 0.8s ease-out infinite;
+  font-size: 3rem;
+  filter: drop-shadow(0 0 10px #ffff00);
+}

@@ -18,6 +18,7 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=deps /app/node_modules ./node_modules
+COPY prisma.config.ts .
 COPY . .
 
 # Generate Prisma Client
@@ -51,6 +52,7 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/run.sh ./run.sh
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 

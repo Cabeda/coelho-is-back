@@ -13,6 +13,14 @@ interface Rabbit {
   emoji: string;
 }
 
+interface FloatingMessage {
+  id: number;
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+}
+
 interface StopwatchProps {
   initialLatestTime: ArrivalTime | null;
   initialHistory: ArrivalTime[];
@@ -23,75 +31,14 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
   const [history, setHistory] = useState<ArrivalTime[]>(initialHistory);
   const [elapsed, setElapsed] = useState<number>(0);
   const [rabbits, setRabbits] = useState<Rabbit[]>([]);
+  const [isDMMode, setIsDMMode] = useState(false);
+  const [floatingMessages, setFloatingMessages] = useState<FloatingMessage[]>([]);
+  const [keyBuffer, setKeyBuffer] = useState("");
+  const [hasSpellShield, setHasSpellShield] = useState(false);
+  const [spellEffects, setSpellEffects] = useState<string[]>([]);
   const requestRef = useRef<number>(null);
 
-  // Timer logic
-  useEffect(() => {
-    if (!latestTime) {
-      setElapsed(0);
-      return;
-    }
-
-    if (latestTime.type === 'DEPARTURE') {
-      setElapsed(parseTime(latestTime.formatted_time));
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setElapsed(Date.now() - latestTime.timestamp);
-    }, 10);
-    return () => clearInterval(interval);
-  }, [latestTime]);
-
-  // Animation logic for bouncing rabbits
-  useEffect(() => {
-    const animate = () => {
-      setRabbits((prevRabbits) =>
-        prevRabbits.map((rabbit) => {
-          let { x, y, vx, vy } = rabbit;
-          const size = 40;
-          const width = window.innerWidth;
-          const height = window.innerHeight;
-
-          x += vx;
-          y += vy;
-
-          if (x <= 0 || x >= width - size) {
-            vx *= -1;
-            x = Math.max(0, Math.min(x, width - size));
-          }
-          if (y <= 0 || y >= height - size) {
-            vy *= -1;
-            y = Math.max(0, Math.min(y, height - size));
-          }
-
-          return { ...rabbit, x, y, vx, vy };
-        })
-      );
-      requestRef.current = requestAnimationFrame(animate);
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, []);
-
-  const handleBackgroundClick = (e: React.MouseEvent) => {
-    if (rabbits.length >= 20) return;
-
-    const newRabbit: Rabbit = {
-      id: Math.random(),
-      x: e.clientX - 20,
-      y: e.clientY - 20,
-      vx: (Math.random() - 0.5) * 10,
-      vy: (Math.random() - 0.5) * 10,
-      emoji: '🐇',
-    };
-
-    setRabbits((prev) => [...prev, newRabbit]);
-  };
-
+  // Helper functions
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -111,9 +58,238 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       const [hms, cs] = timeStr.split('.');
       const [h, m, s] = hms.split(':').map(Number);
       return (h * 3600 + m * 60 + s) * 1000 + (Number(cs) || 0) * 10;
-    } catch (e) {
+    } catch {
       return 0;
     }
+  };
+
+  // Timer logic
+  useEffect(() => {
+    if (!latestTime) {
+      return;
+    }
+
+    if (latestTime.type === 'DEPARTURE') {
+      setElapsed(prev => prev === 0 ? parseTime(latestTime.formatted_time) : prev);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setElapsed(Date.now() - latestTime.timestamp);
+    }, 10);
+    return () => clearInterval(interval);
+  }, [latestTime]);
+
+  // Animation logic for bouncing rabbits
+  useEffect(() => {
+    const animate = () => {
+      setRabbits((prevRabbits) =>
+        prevRabbits.map((rabbit) => {
+          let { x, y, vx, vy } = rabbit;
+          const size = 50;
+          
+          x += vx;
+          y += vy;
+
+          // Get actual viewport dimensions
+          const width = typeof window !== 'undefined' ? window.innerWidth : 1000;
+          const height = typeof window !== 'undefined' ? window.innerHeight : 1000;
+
+          // Bounce off all walls - ensure full window coverage from top-left
+          if (x < 0) {
+            x = 0;
+            vx = Math.abs(vx);
+          }
+          if (x > width - size) {
+            x = width - size;
+            vx = -Math.abs(vx);
+          }
+          if (y < 0) {
+            y = 0;
+            vy = Math.abs(vy);
+          }
+          if (y > height - size) {
+            y = height - size;
+            vy = -Math.abs(vy);
+          }
+
+          return { ...rabbit, x, y, vx, vy };
+        })
+      );
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    requestRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
+  }, []);
+
+  // Key sequence listener for "dnd"
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const newBuffer = (keyBuffer + e.key.toLowerCase()).slice(-10);
+      setKeyBuffer(newBuffer);
+      
+      // DM Mode activation
+      if (newBuffer.slice(-3) === "dnd") {
+        setIsDMMode(prev => !prev);
+        setKeyBuffer("");
+      }
+      
+      // Konami code: ↑↑↓↓←→←→BA = spell shield
+      if (newBuffer.slice(-10) === "uuddlrrlba") {
+        setHasSpellShield(!hasSpellShield);
+        setFloatingMessages(prev => [...prev, {
+          id: Math.random(),
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          text: hasSpellShield ? "SHIELD DEACTIVATED!" : "SPELL SHIELD ACTIVATED!",
+          color: hasSpellShield ? "text-arcade-pink" : "text-arcade-cyan"
+        }]);
+        setSpellEffects(prev => [...prev, hasSpellShield ? '🛡️✨' : '🛡️✨']);
+        setKeyBuffer("");
+      }
+      
+      // Healing potion: type "heal"
+      if (newBuffer.slice(-4) === "heal") {
+        setRabbits(prev => {
+          const newRabbits = [...prev];
+          if (newRabbits.length > 3) {
+            newRabbits.pop(); // Remove last rabbit for "healing"
+            setFloatingMessages(prev => [...prev, {
+              id: Math.random(),
+              x: window.innerWidth / 2,
+              y: window.innerHeight / 4,
+              text: "🔮 POTION USED! 💚",
+              color: "text-green-400"
+            }]);
+            setSpellEffects(prev => [...prev, '💚✨']);
+          }
+          return newRabbits;
+        });
+        setKeyBuffer("");
+      }
+      
+      // Curse: type "curse"
+      if (newBuffer.slice(-5) === "curse") {
+        const cursedEmoji = ['👿', '🧛', '🦇', '💀', '🕷️'];
+        for (let i = 0; i < 5; i++) {
+          const newRabbit: Rabbit = {
+            id: Math.random(),
+            x: Math.random() * (window.innerWidth - 40),
+            y: Math.random() * (window.innerHeight - 40),
+            vx: (Math.random() - 0.5) * 15,
+            vy: (Math.random() - 0.5) * 15,
+            emoji: cursedEmoji[Math.floor(Math.random() * cursedEmoji.length)],
+          };
+          setRabbits(prev => [...prev, newRabbit]);
+        }
+        setFloatingMessages(prev => [...prev, {
+          id: Math.random(),
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          text: "CURSED! 😱",
+          color: "text-red-600"
+        }]);
+        setSpellEffects(prev => [...prev, '💀']);
+        setKeyBuffer("");
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [keyBuffer, hasSpellShield]);
+
+  // Cleanup floating messages
+  useEffect(() => {
+    if (floatingMessages.length > 0) {
+      const timer = setTimeout(() => {
+        setFloatingMessages(prev => prev.slice(1));
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [floatingMessages]);
+
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    if (rabbits.length >= 20) return;
+
+    const roll = Math.floor(Math.random() * 20) + 1;
+    let emoji = isDMMode ? ['🐉', '👹', '💀', '🧙‍♂️', '⚔️', '🛡️'][Math.floor(Math.random() * 6)] : '🐇';
+    let message = '';
+    let messageColor = 'text-arcade-yellow';
+    
+    // Get click coordinates - center the emoji on the click point
+    const clickX = e.clientX;
+    const clickY = e.clientY;
+    
+    if (roll === 20) {
+      emoji = '🎲';
+      message = "CRITICAL SUCCESS!";
+      messageColor = "text-arcade-yellow";
+      // Add extra rabbits on crit success
+      for (let i = 0; i < 2; i++) {
+        setRabbits(prev => {
+          const newRabbit: Rabbit = {
+            id: Math.random(),
+            x: clickX - 20 + (Math.random() - 0.5) * 60,
+            y: clickY - 20 + (Math.random() - 0.5) * 60,
+            vx: (Math.random() - 0.5) * 12,
+            vy: (Math.random() - 0.5) * 12,
+            emoji: isDMMode ? '⭐' : '✨',
+          };
+          return [...prev, newRabbit];
+        });
+      }
+    } else if (roll === 1) {
+      emoji = isDMMode ? '💀' : '👻';
+      message = "CRITICAL FAIL!";
+      messageColor = "text-arcade-pink";
+      // Add a cursed entity on crit fail
+      if (isDMMode) {
+        const newRabbit: Rabbit = {
+          id: Math.random(),
+          x: clickX - 20,
+          y: clickY - 20,
+          vx: (Math.random() - 0.5) * 15,
+          vy: (Math.random() - 0.5) * 15,
+          emoji: '👺',
+        };
+        setRabbits(prev => [...prev, newRabbit]);
+      }
+    } else if (isDMMode && roll === 19) {
+      emoji = '🐉';
+      message = "DRAGON APPEARS!";
+      messageColor = "text-red-500";
+    } else if (isDMMode && roll === 18) {
+      emoji = '🧙‍♂️';
+      message = "WIZARD SUMMONED!";
+      messageColor = "text-arcade-cyan";
+    } else if (isDMMode && roll === 2) {
+      emoji = '🕷️';
+      message = "SPIDER WEB!";
+      messageColor = "text-gray-400";
+    }
+    
+    if (message) {
+      setFloatingMessages(prev => [...prev, {
+        id: Math.random(),
+        x: clickX,
+        y: clickY,
+        text: message,
+        color: messageColor
+      }]);
+    }
+
+    const newRabbit: Rabbit = {
+      id: Math.random(),
+      x: clickX - 20,
+      y: clickY - 20,
+      vx: (Math.random() - 0.5) * 10,
+      vy: (Math.random() - 0.5) * 10,
+      emoji,
+    };
+
+    setRabbits((prev) => [...prev, newRabbit]);
   };
 
   const handleReset = async (e: React.MouseEvent) => {
@@ -147,17 +323,44 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
 
   return (
     <main 
-      className="relative w-full h-screen h-[100dvh] flex flex-col items-center justify-center overflow-hidden bg-black cursor-crosshair p-4"
+      className={`relative w-full h-screen h-[100dvh] flex flex-col items-center justify-center overflow-hidden cursor-crosshair p-4 transition-colors duration-500 ${isDMMode ? 'bg-red-950' : 'bg-black'}`}
       onClick={handleBackgroundClick}
     >
-      <div className="pixel-grid absolute inset-0 z-0" />
+      <div className={`absolute inset-0 z-0 ${isDMMode ? 'dungeon-grid' : 'pixel-grid'}`} />
+
+      {/* Floating Messages */}
+      {floatingMessages.map((msg) => (
+        <div
+          key={msg.id}
+          className={`absolute pointer-events-none z-30 arcade-text text-sm md:text-lg animate-float-up ${msg.color}`}
+          style={{ left: msg.x, top: msg.y }}
+        >
+          {msg.text}
+        </div>
+      ))}
+
+      {/* Spell Effects */}
+      {spellEffects.map((effect, idx) => (
+        <div
+          key={idx}
+          className="absolute pointer-events-none z-20 text-2xl md:text-3xl animate-pulse"
+          style={{ 
+            left: `${30 + (idx * 10)}%`,
+            top: `${20 + (idx * 5)}%`
+          }}
+        >
+          {effect}
+        </div>
+      ))}
 
       {/* Bouncing Rabbits */}
       {rabbits.map((rabbit) => (
         <div
           key={rabbit.id}
-          className="absolute text-2xl md:text-4xl pointer-events-none z-10"
+          className={`absolute text-2xl md:text-4xl pointer-events-none z-10 ${rabbit.emoji === '🎲' ? 'dice-rolling' : ''}`}
           style={{
+            left: 0,
+            top: 0,
             transform: `translate3d(${rabbit.x}px, ${rabbit.y}px, 0)`,
             willChange: 'transform',
           }}
@@ -167,10 +370,16 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       ))}
 
       {/* Main UI */}
-      <div className="z-20 flex flex-col items-center gap-10 md:gap-16 p-8 md:p-12 arcade-border bg-black/80 backdrop-blur-sm w-full max-w-md">
-        <h1 className="text-2xl md:text-4xl font-bold arcade-text text-center leading-tight mb-2 md:mb-4">
-          COELHO IS BACK!
+      <div className={`z-20 flex flex-col items-center gap-10 md:gap-16 p-8 md:p-12 arcade-border bg-black/80 backdrop-blur-sm w-full max-w-md transition-all duration-500 ${isDMMode ? 'border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.5)]' : ''} ${hasSpellShield ? 'border-arcade-cyan shadow-[0_0_30px_rgba(0,255,255,0.3)]' : ''}`}>
+        <h1 className={`text-2xl md:text-4xl font-bold arcade-text text-center leading-tight mb-2 md:mb-4 ${isDMMode ? 'text-red-600' : ''}`}>
+          {isDMMode ? 'DUNGEON MASTER' : 'COELHO IS BACK!'}
         </h1>
+
+        {hasSpellShield && (
+          <div className="text-xs md:text-sm arcade-text text-arcade-cyan animate-pulse">
+            🛡️ SPELL SHIELD ACTIVE 🛡️
+          </div>
+        )}
 
         <div className="flex flex-col items-center w-full">
           <div className="text-4xl sm:text-5xl md:text-6xl font-mono text-arcade-yellow arcade-text tabular-nums tracking-tighter">
@@ -214,7 +423,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
             {history.length === 0 ? (
               <p className="text-gray-500 italic text-center">No records yet...</p>
             ) : (
-              history.map((entry, i) => (
+              history.map((entry) => (
                 <div key={entry.id} className="flex justify-between items-center px-2 border-l-2 border-arcade-blue/30 pl-3 md:pl-4">
                   <div className="flex flex-col">
                     <span className={`text-[9px] md:text-[10px] font-bold ${entry.type === 'ARRIVAL' ? 'text-arcade-cyan' : 'text-arcade-pink'}`}>
@@ -236,6 +445,12 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
 
       <div className="absolute bottom-2 md:bottom-4 text-[8px] md:text-xs text-arcade-blue arcade-text opacity-50">
         INSERT COIN TO CONTINUE
+      </div>
+
+      {/* Easter Egg Hints */}
+      <div className="absolute top-2 md:top-4 right-2 md:right-4 text-[6px] md:text-[8px] text-arcade-blue arcade-text opacity-30 max-w-24 text-right leading-tight">
+        <div>type: dnd | heal | curse</div>
+        <div>↑↑↓↓←→←→BA for shield</div>
       </div>
     </main>
   );
