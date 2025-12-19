@@ -443,12 +443,12 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
         </div>
       </div>
 
-      <div className="absolute bottom-2 md:bottom-4 text-[8px] md:text-xs text-arcade-blue arcade-text opacity-50">
+      <div className="absolute bottom-2 md:bottom-4 w-full text-center text-[8px] md:text-xs text-arcade-blue arcade-text opacity-50 z-30">
         INSERT COIN TO CONTINUE
       </div>
 
       {/* Easter Egg Hints */}
-      <div className="absolute top-2 md:top-4 right-2 md:right-4 text-[6px] md:text-[8px] text-arcade-blue arcade-text opacity-30 max-w-24 text-right leading-tight">
+      <div className="absolute top-2 md:top-4 right-2 md:right-4 text-[8px] md:text-[10px] text-arcade-blue arcade-text opacity-30 text-right leading-tight z-30">
         <div>type: dnd | heal | curse</div>
         <div>↑↑↓↓←→←→BA for shield</div>
       </div>

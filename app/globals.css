@@ -33,7 +33,6 @@ body {
                clamp(-1px, -0.5vw, -2px) clamp(-1px, -0.5vw, -2px) 0px var(--color-arcade-cyan);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-size: clamp(1rem, 5vw, 2.5rem);
 }
 
 .arcade-border {
