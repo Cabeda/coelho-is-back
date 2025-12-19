@@ -149,13 +149,20 @@ function Dice({ targetNumber, onComplete }: DiceProps) {
 export default function Dice3DContainer({ targetNumber, onComplete }: DiceProps) {
   return (
     <div className="w-32 h-32 md:w-40 md:h-40 -mt-16 -ml-16 md:-mt-20 md:-ml-20 pointer-events-none overflow-visible">
-      <Canvas shadows gl={{ alpha: true }}>
+      <Canvas 
+        shadows 
+        gl={{ 
+          alpha: true,
+          antialias: false,
+          powerPreference: "high-performance"
+        }}
+        dpr={[1, 1.5]}
+        frameloop="always"
+      >
         <PerspectiveCamera makeDefault position={[0, 0, 6]} fov={30} />
         <ambientLight intensity={1.2} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
-        <pointLight position={[-10, -10, -10]} intensity={1} />
+        <directionalLight position={[5, 5, 5]} intensity={1.5} castShadow />
         <Dice targetNumber={targetNumber} onComplete={onComplete} />
-        <ContactShadows position={[0, -0.4, 0]} opacity={0.7} scale={10} blur={2.5} far={4} />
         <Environment preset="city" />
       </Canvas>
     </div>

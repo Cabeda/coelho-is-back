@@ -225,8 +225,11 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
     const clickX = e.clientX;
     const clickY = e.clientY;
     
-    // Increased frequency: 1 in 4 chance (roll >= 16)
-    if (roll >= 16) {
+    // Check if there's already a dice (limit to 1 for performance)
+    const hasDice = rabbits.some(r => r.emoji === '🎲');
+    
+    // Increased frequency: 1 in 4 chance (roll >= 16), but only if no dice exists
+    if (roll >= 16 && !hasDice) {
       emoji = '🎲';
       targetNumber = Math.floor(Math.random() * 6) + 1;
       message = roll === 20 ? `CRITICAL SUCCESS! (Rolled ${targetNumber})` : `DICE ROLL! (${targetNumber})`;
@@ -287,6 +290,7 @@ export default function Stopwatch({ initialLatestTime, initialHistory }: Stopwat
       }]);
     }
 
+    // Only create the rabbit if we didn't add extra emojis
     const newRabbit: Rabbit = {
       id: Math.random(),
       x: clickX - 20,
