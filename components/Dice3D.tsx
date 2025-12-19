@@ -90,24 +90,25 @@ function Dice({ targetNumber, onComplete }: DiceProps) {
     if (!meshRef.current || startTime.current === null) return;
 
     const elapsed = (Date.now() - startTime.current) / 1000;
-    const duration = 3.5; // Much longer duration to see the roll
+    const duration = 2.5; // Shorter, more realistic duration
 
     if (elapsed < duration) {
-      // Fast rotation that slows down more gradually
-      const speedFactor = Math.pow(1 - elapsed / duration, 1.5);
-      meshRef.current.rotation.x += delta * (8 + 25 * speedFactor);
-      meshRef.current.rotation.y += delta * (6 + 20 * speedFactor);
-      meshRef.current.rotation.z += delta * (5 + 15 * speedFactor);
-      
-      // Bounce effect with "gravity" - more pronounced and slower
-      const bounceCount = 4;
-      const bounceHeight = 0.8; // Smaller bounce for compact size
+      // Realistic deceleration: starts fast, slows dramatically toward the end
       const progress = elapsed / duration;
-      const bounce = Math.abs(Math.cos(progress * Math.PI * bounceCount)) * bounceHeight * (1 - progress);
+      const speedFactor = Math.pow(1 - progress, 3); // Cubic easing for sharp deceleration
+      
+      meshRef.current.rotation.x += delta * (5 + 35 * speedFactor);
+      meshRef.current.rotation.y += delta * (4 + 28 * speedFactor);
+      meshRef.current.rotation.z += delta * (3 + 20 * speedFactor);
+      
+      // Bounce effect with "gravity" - fewer, more realistic bounces
+      const bounceCount = 3;
+      const bounceHeight = 0.8;
+      const bounce = Math.abs(Math.sin(progress * Math.PI * bounceCount)) * bounceHeight * Math.pow(1 - progress, 2);
       
       meshRef.current.position.y = bounce;
-      meshRef.current.position.x = Math.sin(elapsed * 2) * (1 - progress);
-      meshRef.current.position.z = Math.cos(elapsed * 1.5) * (1 - progress);
+      meshRef.current.position.x = Math.sin(elapsed * 3) * Math.pow(1 - progress, 2) * 0.5;
+      meshRef.current.position.z = Math.cos(elapsed * 2.5) * Math.pow(1 - progress, 2) * 0.5;
     } else if (isRolling) {
       // Smoothly interpolate to target rotation - slower final settle
       const lerpFactor = 0.05;
